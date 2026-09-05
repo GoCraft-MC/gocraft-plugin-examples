@@ -65,6 +65,13 @@ func (p *goExamplePlugin) OnLoad(context gocraft.Context) error {
 			return
 		}
 		purchase.Price *= 0.9
+		// And one line of the purchase, which is the case a flat layout could
+		// not express: the list is final — nobody swaps it — while the records
+		// in it are not. What travels back is this record's price, not the list
+		// it sits in.
+		if len(purchase.Tiers) > 0 {
+			purchase.Tiers[0].Price *= 0.5
+		}
 		if purchase.Buyer != nil {
 			// A handle carried by a plugin-defined event, bound to this
 			// dispatch: somebody to answer, not an id to look up.
