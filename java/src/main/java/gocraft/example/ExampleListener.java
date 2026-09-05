@@ -28,7 +28,7 @@ public final class ExampleListener {
     @Subscribe
     public void onPlayerJoin(PlayerJoinEvent event) {
         host.log(event.player().username() + " joined from " + event.player().edition());
-        event.sendMessage("Hello from a Java plugin, " + event.player().username() + ".");
+        event.player().sendMessage("Hello from a Java plugin, " + event.player().username() + ".");
     }
 
     /// Refuses to let anyone mine bedrock, and says why.
@@ -50,11 +50,11 @@ public final class ExampleListener {
         if (event.can("gocraft.example.notify")) {
             // The permission arrived resolved inside the event; asking the
             // server would have cost a round trip while it waits.
-            event.sendMessage("Bedrock stays put, but you would have been allowed.");
+            event.player().sendMessage("Bedrock stays put, but you would have been allowed.");
             return;
         }
         control.cancel();
-        event.sendMessage("Bedrock is not yours to break at "
+        event.player().sendMessage("Bedrock is not yours to break at "
                 + event.pos() + " with " + event.tool() + ".");
     }
 }

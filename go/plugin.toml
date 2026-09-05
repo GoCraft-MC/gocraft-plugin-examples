@@ -14,5 +14,10 @@ entry = "bin/gocraft-example-go"
 [subscribe]
 events = ["player.join", "block.break"]
 
+# Resolved by the host before every dispatch and shipped inside the event, so
+# event.Can(...) is a map lookup rather than a round trip taken while the tick
+# waits. A node not declared here reads false — a manifest bug, not a denial.
+perms = ["gocraft.example.mine"]
+
 [commands]
 tree = "commands.pb"
