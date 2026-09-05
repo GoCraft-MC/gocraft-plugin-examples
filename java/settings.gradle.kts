@@ -1,13 +1,19 @@
-// mavenLocal() first, and only until the API is tagged.
+// mavenLocal, and only until the API is tagged.
 //
-// This plugin uses the plugin-defined event API, which is written but not
-// released. So `./gradlew publishToMavenLocal` in the gocraft-jvm checkout is a
-// prerequisite here, and the version below is that repository's
-// declaredVersion rather than a published tag.
+// This plugin uses the plugin-defined event API, which is written and not
+// released, so `./gradlew publishToMavenLocal` in the gocraft-jvm checkout is a
+// prerequisite here.
 //
-// When it is tagged this becomes what the README hands an author: jitpack.io
-// alone, and a version with a leading v. Nothing else in this file changes,
-// which is the point of writing it this way rather than with a composite build.
+// The coordinates differ from an author's twice over, and both differences are
+// the same fact: JitPack publishes under a group derived from the repository
+// path and serves a tag verbatim, while a local publish writes the group the
+// project declares and the version as declared. So this asks for
+// fr.gocraft:gocraft-gradle-plugin:0.2.2 where an author writes
+// com.github.GoCraft-MC.gocraft-jvm:…:v0.2.2. gradle.properties tells the
+// plugin to resolve the API the same way.
+//
+// When it is tagged, this whole block becomes the four lines the README hands
+// an author: jitpack.io, and a version with a leading v.
 pluginManagement {
     repositories {
         mavenLocal()
@@ -16,19 +22,8 @@ pluginManagement {
     }
     resolutionStrategy.eachPlugin {
         if (requested.id.id == "fr.gocraft.plugin") {
-            useModule("com.github.GoCraft-MC.gocraft-jvm:gocraft-gradle-plugin:${requested.version}")
+            useModule("fr.gocraft:gocraft-gradle-plugin:${requested.version}")
         }
-    }
-}
-
-// The build plugin declares the API and the processor for us, at versions
-// matching its own — but it cannot declare where they come from, so the same
-// order is repeated for them.
-dependencyResolutionManagement {
-    repositories {
-        mavenLocal()
-        maven { url = uri("https://jitpack.io") }
-        mavenCentral()
     }
 }
 

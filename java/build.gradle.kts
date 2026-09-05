@@ -4,6 +4,14 @@ plugins {
     id("fr.gocraft.plugin") version "0.2.2"
 }
 
+// Declared here rather than in settings, because the build plugin adds jitpack
+// at project level — and a project that declares repositories of its own is
+// where Gradle looks, settings or not. Putting mavenLocal in settings would
+// have been silently ignored, which is how the first attempt failed.
+repositories {
+    mavenLocal()
+}
+
 gocraft {
     bundleName = "gocraft-example-java"
 
