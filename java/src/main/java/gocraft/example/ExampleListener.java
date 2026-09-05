@@ -1,5 +1,6 @@
 package gocraft.example;
 
+import fr.gocraft.api.EventControl;
 import fr.gocraft.api.Host;
 import fr.gocraft.api.Priority;
 import fr.gocraft.api.Subscribe;
@@ -37,8 +38,12 @@ public final class ExampleListener {
     ///
     /// HIGH rather than the default, because a protection decision should be
     /// made after plugins that merely observe have had their look.
+    ///
+    /// The EventControl is asked for because this handler refuses. A handler
+    /// that only watches leaves it out, and asking for one on an event nobody
+    /// may cancel is refused when the listener is registered.
     @Subscribe(priority = Priority.HIGH)
-    public void onBlockBreak(BlockBreakEvent event) {
+    public void onBlockBreak(BlockBreakEvent event, EventControl control) {
         if (!"minecraft:bedrock".equals(event.block().id())) {
             return;
         }
@@ -48,7 +53,7 @@ public final class ExampleListener {
             event.sendMessage("Bedrock stays put, but you would have been allowed.");
             return;
         }
-        event.cancel();
+        control.cancel();
         event.sendMessage("Bedrock is not yours to break at "
                 + event.pos() + " with " + event.tool() + ".");
     }
