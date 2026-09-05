@@ -1,0 +1,18 @@
+# The Go reference plugin.
+#
+# A Go plugin is a compiled binary and its own host, so `entry` names an
+# executable under payload/ rather than a class. The command tree is not written
+# here: it is declared as code, dumped with -gocraft-dump-commands, and handed
+# to `gocraft-cli build -commands`. Nothing compiles a hand-authored TOML tree.
+
+id = "gocraft.example.go"
+version = "0.1.0"
+api = 1
+runtime = "go"
+entry = "bin/gocraft-example-go"
+
+[subscribe]
+events = ["player.join", "block.break"]
+
+[commands]
+tree = "commands.pb"

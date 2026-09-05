@@ -1,0 +1,23 @@
+# Built plugin binaries. The Go plugin's entry is a compiled executable, so it
+# is a build output like any other and never travels in the repository.
+go/bin/
+go/gocraft-example-go
+go/gocraft-example-go.exe
+
+# `go build ./go/` names the binary after the directory, and the directory is
+# called go. Only the Windows form needs a rule: elsewhere the name collides
+# with the directory and the build refuses rather than writing it. Anchored,
+# and never `/go` — that would ignore the plugin itself.
+/go.exe
+
+# What `-gocraft-dump-commands` writes. The bundle build reads it and the packer
+# skips it, which is why it can live inside the plugin directory at all.
+go/.gocraft/
+
+# Gradle.
+java/.gradle/
+java/build/
+
+# Bundles. They are what this repository produces, and the test server takes a
+# copy; neither belongs in the history.
+*.gcpkg

@@ -1,0 +1,21 @@
+# The Java reference plugin.
+#
+# The file must be UTF-8 without a BOM, and any unknown key fails the load: the
+# decoder is strict on purpose, so a typo is refused on the machine that has the
+# source rather than accepted and ignored on a server.
+
+id = "gocraft.example.java"
+version = "0.1.0"
+api = 1
+runtime = "jvm"
+entry = "gocraft.example.ExamplePlugin"
+
+[subscribe]
+# The host routes from this manifest alone. A handler whose event is not
+# declared here is refused at load, rather than never called.
+events = ["block.break", "player.join"]
+
+# These nodes are resolved by the host before every dispatch and travel inside
+# the event, which is what lets event.can(...) be a map lookup instead of a
+# round trip taken while the tick waits.
+perms = ["gocraft.example.notify"]
