@@ -11,13 +11,21 @@ api = 1
 runtime = "go"
 entry = "bin/gocraft-example-go"
 
-[subscribe]
-events = ["player.join", "block.break", "gocraft.example/purchase"]
+[[subscribe]]
+event = "player.join"
 
 # Resolved by the host before every dispatch and shipped inside the event, so
 # event.Can(...) is a map lookup rather than a round trip taken while the tick
 # waits. A node not declared here reads false — a manifest bug, not a denial.
+[[subscribe]]
+event = "block.break"
 perms = ["gocraft.example.mine"]
+
+# Last, and only to watch: this one discounts a purchase somebody else
+# announced, so it should see what every other subscriber decided first.
+[[subscribe]]
+event = "gocraft.example/purchase"
+priority = "monitor"
 
 [commands]
 tree = "commands.pb"

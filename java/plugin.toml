@@ -17,17 +17,30 @@ entry = "gocraft.example.ExamplePlugin"
 [commands]
 tree = "commands.pb"
 
-[subscribe]
-# The host routes from this manifest alone. A handler whose event is not
-# declared here is refused at load, rather than never called.
-events = ["block.break", "player.join", "gocraft.example/greeting"]
-
 # What this plugin provides is not written here. @PluginEvent on PurchaseEvent
 # is the declaration; gocraft-apt derives the layout and gocraft-cli writes it
 # into the manifest the bundle carries. Declaring it here as well would fail the
 # build, which is the point.
 
-# These nodes are resolved by the host before every dispatch and travel inside
-# the event, which is what lets event.can(...) be a map lookup instead of a
-# round trip taken while the tick waits.
+# The host routes from these alone. A handler whose event is not declared here
+# is refused at load, rather than never called.
+#
+# One block per subscription, because a subscription has more to say than which
+# event it is for. The nodes below are resolved before every dispatch and travel
+# inside the event — which is what lets event.can(...) be a map lookup instead
+# of a round trip taken while the tick waits — so declaring them per
+# subscription rather than once per plugin is the difference between sending
+# what this event needs and sending everything the plugin ever asks about.
+[[subscribe]]
+event = "block.break"
+# After the plugins that merely observe have had their look: a protection
+# decision should see what they left. High runs before low here, which is
+# Bukkit's order inverted on purpose.
+priority = "high"
 perms = ["gocraft.example.notify"]
+
+[[subscribe]]
+event = "player.join"
+
+[[subscribe]]
+event = "gocraft.example/greeting"
