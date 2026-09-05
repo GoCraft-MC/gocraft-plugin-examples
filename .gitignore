@@ -21,3 +21,8 @@ java/build/
 # Bundles. They are what this repository produces, and the test server takes a
 # copy; neither belongs in the history.
 *.gcpkg
+# What `gocraft-cli gen` writes. Generated from the other plugin's manifest at
+# build time, so committing it would be committing a copy of somebody else's
+# description — the very thing generating it exists to avoid.
+go/internal/
+java/src/main/java/gocraft/example/greeting/

@@ -12,7 +12,7 @@ runtime = "go"
 entry = "bin/gocraft-example-go"
 
 [subscribe]
-events = ["player.join", "block.break"]
+events = ["player.join", "block.break", "gocraft.example/purchase"]
 
 # Resolved by the host before every dispatch and shipped inside the event, so
 # event.Can(...) is a map lookup rather than a round trip taken while the tick
@@ -21,3 +21,16 @@ perms = ["gocraft.example.mine"]
 
 [commands]
 tree = "commands.pb"
+
+# The event this plugin defines, and the half of the pair that starts in Go.
+#
+# Written by hand because a Go plugin has no annotation processor to derive it
+# from: nothing compiles a struct into a manifest the way gocraft-apt compiles a
+# class. So this is the description, and `gocraft-cli gen` turns it back into
+# the Go types this plugin emits through — one description still, read twice.
+[[events.provides]]
+type = "gocraft.example/greeting"
+fields = [
+  { name = "player", type = "PlayerRef" },
+  { name = "message", type = "string", mutable = true },
+]

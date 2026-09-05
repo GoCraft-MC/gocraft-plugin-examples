@@ -26,6 +26,8 @@ public final class ExamplePlugin implements Plugin {
     @Override
     public void enable() {
         host.registerListener(new ExampleListener(host));
+        host.registerListener(new GreetingListener());
+        host.registerCommands(ShopCommandsTree.of(new ShopCommands(host)));
         host.log("loaded, watching for arrivals and mining");
     }
 

@@ -10,10 +10,22 @@ api = 1
 runtime = "jvm"
 entry = "gocraft.example.ExamplePlugin"
 
+# The tree gocraft-apt derived from @Cmd and @Sub, written into the bundle by
+# gocraft-cli. The host parses a typed line against it before this plugin is
+# asked anything, which is why a command has to be declared at build time and
+# not registered at startup.
+[commands]
+tree = "commands.pb"
+
 [subscribe]
 # The host routes from this manifest alone. A handler whose event is not
 # declared here is refused at load, rather than never called.
-events = ["block.break", "player.join"]
+events = ["block.break", "player.join", "gocraft.example/greeting"]
+
+# What this plugin provides is not written here. @PluginEvent on PurchaseEvent
+# is the declaration; gocraft-apt derives the layout and gocraft-cli writes it
+# into the manifest the bundle carries. Declaring it here as well would fail the
+# build, which is the point.
 
 # These nodes are resolved by the host before every dispatch and travel inside
 # the event, which is what lets event.can(...) be a map lookup instead of a

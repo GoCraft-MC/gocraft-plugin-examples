@@ -6,6 +6,9 @@ import (
 	"os"
 
 	gocraft "github.com/GoCraft-MC/gocraft-api-go"
+
+	"github.com/GoCraft-MC/gocraft-plugin-examples/go/internal/mine"
+	"github.com/GoCraft-MC/gocraft-plugin-examples/go/internal/shop"
 )
 
 var metadata = gocraft.Metadata{
@@ -21,12 +24,51 @@ func (p *goExamplePlugin) OnLoad(context gocraft.Context) error {
 	context.Logger().Info("loaded", "data", context.DataDirectory())
 	// The handle arrives bound to this dispatch, so answering the player is a
 	// method on the player rather than a call on the channel with their id.
+	// The other half of the pair, in this direction: this plugin defines the
+	// greeting, publishes it, and the Java plugin gets to rewrite the line
+	// before anybody reads it.
 	if err := context.Events().OnPlayerJoin(func(event *gocraft.PlayerJoinEvent, control gocraft.EventControl) {
 		context.Logger().Info("player joined", "player", event.Player.Username,
 			"edition", event.Player.Edition)
-		if err := event.Player.SendMessage("Hello from a Go plugin, " +
-			event.Player.Username + "."); err != nil {
+		greeting := &mine.Greeting{
+			Player:  event.Player,
+			Message: "Hello from a Go plugin, " + event.Player.Username + ".",
+		}
+		// Blocks until every subscriber has run, and the struct is updated
+		// before it returns: the message sent below is the one they left.
+		allowed, err := context.Events().Emit(greeting)
+		if err != nil {
+			context.Logger().Error("greeting not published", "err", err)
+			return
+		}
+		if !allowed {
+			context.Logger().Info("a subscriber refused the greeting")
+			return
+		}
+		if err := event.Player.SendMessage(greeting.Message); err != nil {
 			context.Logger().Error("greeting not queued", "err", err)
+		}
+	}); err != nil {
+		return err
+	}
+	// And in the other direction: an event the Java plugin defines, received
+	// here through types gocraft-cli generated from its manifest. Nothing in
+	// this file describes that event — regenerating after it changes is what
+	// makes the compiler name whatever moved.
+	if err := shop.OnPurchase(context.Events(), func(purchase *shop.Purchase,
+		control gocraft.EventControl) {
+		context.Logger().Info("purchase seen", "price", purchase.Price,
+			"lines", len(purchase.Tiers))
+		if purchase.Price > 100_000 {
+			// Cancellable, and the emitter is expected to abandon the sale.
+			control.Cancel()
+			return
+		}
+		purchase.Price *= 0.9
+		if purchase.Buyer != nil {
+			// A handle carried by a plugin-defined event, bound to this
+			// dispatch: somebody to answer, not an id to look up.
+			_ = purchase.Buyer.SendMessage("10% off, from a Go plugin.")
 		}
 	}); err != nil {
 		return err
