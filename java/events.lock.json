@@ -37,6 +37,11 @@
           "name": "price",
           "type": "double",
           "mutable": true
+        },
+        {
+          "name": "stock",
+          "type": "map[string]int",
+          "mutable": false
         }
       ]
     }

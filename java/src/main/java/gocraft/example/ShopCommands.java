@@ -41,7 +41,8 @@ public final class ShopCommands {
         }
         PurchaseEvent purchase = new PurchaseEvent(context.sender().player(),
                 List.of(new Tier("gold", price * 0.75), new Tier("iron", price * 0.25)),
-                price);
+                price,
+                java.util.Map.of("gold_ingot", 12, "iron_ingot", 240));
 
         if (!host.emit(purchase)) {
             context.reply("The sale was refused.");
