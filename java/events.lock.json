@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "types": [
+    {
+      "name": "gocraft.example.Tier",
+      "fields": [
+        {
+          "name": "label",
+          "type": "string",
+          "mutable": false
+        },
+        {
+          "name": "price",
+          "type": "double",
+          "mutable": true
+        }
+      ]
+    }
+  ],
+  "events": [
+    {
+      "type": "gocraft.example/purchase",
+      "cancellable": true,
+      "failClosed": false,
+      "fields": [
+        {
+          "name": "buyer",
+          "type": "PlayerRef",
+          "mutable": false
+        },
+        {
+          "name": "tiers",
+          "type": "[]gocraft.example.Tier",
+          "mutable": false
+        },
+        {
+          "name": "price",
+          "type": "double",
+          "mutable": true
+        }
+      ]
+    }
+  ]
+}
