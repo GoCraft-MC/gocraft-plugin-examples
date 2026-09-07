@@ -28,11 +28,24 @@ Each plugin builds into a `.gcpkg` bundle, which is what a server loads.
 
 ```sh
 cd java && ./gradlew gocraftBundle     # -> java/build/gocraft/gocraft-example-java.gcpkg
-cd go   && go build -o bin/ ./...      # then gocraft-cli build
+cd go   && ./build.sh                  # -> go/gocraft-example-go.gcpkg
 ```
 
-From the workspace, `make examples` does both and drops the bundles in the test
-server's `plugins/`.
+Each half carries its own build, and both do the same two things beyond
+compiling: they generate the types the other plugin declares, from that plugin's
+own manifest, and they hand the packer `events.lock.json` — which refuses a
+reordered or removed event field before a bundle exists. Appending one is fine.
+That record is committed, and it is what protects a subscriber compiled last
+month against a layout that moved under it.
+
+The Java bundle comes first. Its manifest is derived from its annotated classes
+and exists only once built, so `build.sh` needs `SHOP_BUNDLE` pointing at it the
+first time — the Go manifest is written by hand and needs nothing in return,
+which is what unties the knot. Both builds want a locally built `gocraft-cli`
+for the reason the next section gives.
+
+From the workspace, `make examples` orders the two and drops the bundles in the
+test server's `plugins/`.
 
 ## Versions, and why they are not tags yet
 
