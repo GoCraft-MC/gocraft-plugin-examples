@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "types": [],
+  "events": [
+    {
+      "type": "gocraft.example/greeting",
+      "cancellable": false,
+      "failClosed": false,
+      "fields": [
+        {
+          "name": "player",
+          "type": "PlayerRef",
+          "mutable": false
+        },
+        {
+          "name": "message",
+          "type": "string",
+          "mutable": true
+        }
+      ]
+    }
+  ]
+}
