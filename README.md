@@ -31,6 +31,32 @@ cd java && ./gradlew gocraftBundle     # -> java/build/gocraft/gocraft-example-j
 cd go   && ./build.sh                  # -> go/gocraft-example-go.gcpkg
 ```
 
+For a fresh checkout, generate the Java subscriber from the Go provider first
+(from this repository's root, using the custom-events-capable packer):
+
+```sh
+gocraft-cli gen -lang java -package gocraft.example.greeting \
+  -o java/src/main/java/gocraft/example/greeting go
+```
+
+Pass `-PgocraftCli=/absolute/path/to/gocraft-cli` to the Java Gradle command.
+Then set `GOCRAFT_CLI` and `SHOP_BUNDLE` when running the Go build script. No
+untracked workspace Makefile is required. Go dependencies are now pinned to
+published feature commits, so the Go example builds without `go.work`.
+
+## Native cancellation and mutation
+
+Both examples subscribe to `player.chat` in addition to the original events:
+
+- `hello-go` becomes `Hello from the typed Go event API.` before broadcast.
+- `hello-java` becomes `Hello from the typed Java event API.` before broadcast.
+- `hide-go` / `hide-java` are cancelled and never broadcast.
+
+Go assigns `event.Message` and uses `control.Cancel()`. Java uses
+`event.setMessage(...)` and `control.cancel()`. Each uses the same verdict
+round trip. Other fields are immutable snapshots, not additional write APIs.
+The custom purchase/greeting examples and their layout locks remain unchanged.
+
 Each half carries its own build, and both do the same two things beyond
 compiling: they generate the types the other plugin declares, from that plugin's
 own manifest, and they hand the packer `events.lock.json` — which refuses a
@@ -56,7 +82,7 @@ checkout beside them.
 
 These two do not, yet. They use parts of the API that are written but untagged,
 so the Java build resolves `gocraft-jvm` from `mavenLocal()` and the Go build
-resolves `gocraft-api-go` through the workspace `go.work`. Both are marked at
+pins published `gocraft-api-go` feature commits. Both are marked at
 the place they are configured. When the API is tagged, both flip back to
 coordinates and this section goes away — until then, `./gradlew
 publishToMavenLocal` in `gocraft-jvm` is a prerequisite for the Java build.
