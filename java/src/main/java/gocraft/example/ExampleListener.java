@@ -6,6 +6,7 @@ import fr.gocraft.api.Priority;
 import fr.gocraft.api.Subscribe;
 import fr.gocraft.api.event.BlockBreakEvent;
 import fr.gocraft.api.event.PlayerJoinEvent;
+import fr.gocraft.api.event.PlayerChatEvent;
 
 /// Every part of the event API, in as few lines as will show it.
 ///
@@ -29,6 +30,14 @@ public final class ExampleListener {
     public void onPlayerJoin(PlayerJoinEvent event) {
         host.log(event.player().username() + " joined from " + event.player().edition());
         event.player().sendMessage("Hello from a Java plugin, " + event.player().username() + ".");
+    }
+
+    @Subscribe
+    public void onChat(PlayerChatEvent event, EventControl control) {
+        if ("hide-java".equals(event.message())) { control.cancel(); return; }
+        if ("hello-java".equals(event.message())) {
+            event.setMessage("Hello from the typed Java event API.");
+        }
     }
 
     /// Refuses to let anyone mine bedrock, and says why.
