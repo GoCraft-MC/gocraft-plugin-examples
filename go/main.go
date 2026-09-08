@@ -27,7 +27,7 @@ func (p *goExamplePlugin) OnLoad(context gocraft.Context) error {
 	// The other half of the pair, in this direction: this plugin defines the
 	// greeting, publishes it, and the Java plugin gets to rewrite the line
 	// before anybody reads it.
-	if err := context.Events().OnPlayerJoin(func(event *gocraft.PlayerJoinEvent, control gocraft.EventControl) {
+	if err := context.Events().OnPlayerJoin(func(event *gocraft.PlayerJoinEvent) {
 		context.Logger().Info("player joined", "player", event.Player.Username,
 			"edition", event.Player.Edition)
 		greeting := &mine.Greeting{
@@ -80,15 +80,24 @@ func (p *goExamplePlugin) OnLoad(context gocraft.Context) error {
 	}); err != nil {
 		return err
 	}
-	// Observational handlers take the control and ignore it; one that refuses
-	// uses it. Same signature either way, and the same one a plugin-defined
-	// event's handler has.
+	// Only cancellable native handlers receive EventControl.
 	if err := context.Events().OnBlockBreak(func(event *gocraft.BlockBreakEvent, control gocraft.EventControl) {
 		context.Logger().Info("block broken", "player", event.Player.Username,
 			"block", event.Block.ID, "position", event.Pos)
 		if event.Block.ID == "minecraft:bedrock" && !event.Can("gocraft.example.mine") {
 			control.Cancel()
 			_ = event.Player.SendMessage("Bedrock is not yours to break.")
+		}
+	}); err != nil {
+		return err
+	}
+	if err := context.Events().OnPlayerChat(func(event *gocraft.PlayerChatEvent, control gocraft.EventControl) {
+		if event.Message == "hide-go" {
+			control.Cancel()
+			return
+		}
+		if event.Message == "hello-go" {
+			event.Message = "Hello from the typed Go event API."
 		}
 	}); err != nil {
 		return err
