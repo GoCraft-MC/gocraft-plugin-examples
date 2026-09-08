@@ -43,4 +43,7 @@ perms = ["gocraft.example.notify"]
 event = "player.join"
 
 [[subscribe]]
+event = "player.chat"
+
+[[subscribe]]
 event = "gocraft.example/greeting"
