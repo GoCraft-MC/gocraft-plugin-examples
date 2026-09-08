@@ -11,21 +11,17 @@
 #
 #   ./build.sh [output.gcpkg]
 #
-# GOCRAFT_CLI names the packer; otherwise the workspace layout is assumed, where
-# `make cli` puts it in run/.
+# GOCRAFT_CLI names the packer. Without it, the gocraft-cli release is
+# downloaded once into .gocraft/tool and verified against the release's
+# checksums.txt before it ever runs — the same discipline the Gradle plugin
+# applies for the Java half. The workspace Makefile sets GOCRAFT_CLI at the
+# local build; nothing here knows the workspace exists.
 #
-# Neither committed nor downloaded, and both were considered. A binary in the
-# repository is the mistake this project already made once and cannot undo: an
-# 11 MB protoc-gen-gocraft is still in GoCraft's history, untracked since, and
-# every fresh clone pays for it — and here it would be one per platform, in the
-# repository an author is told to copy from. Downloading it is the right answer
-# and is already built: the Gradle plugin fetches gocraft-cli for the author's
-# machine and verifies it against the release's checksums.txt before running it.
-# It is not used yet, for the reason java/build.gradle.kts gives at length — a
-# released packer is compiled against a gocraft-abi that predates
-# [[events.provides]], and its strict decoder refuses a manifest the server
-# accepts. When gocraft-cli and gocraft-abi are tagged together, both halves of
-# this repository drop their local path and take the verified download.
+# Never committed, and that was considered. A binary in the repository is the
+# mistake this project already made once and cannot undo: an 11 MB
+# protoc-gen-gocraft is still in GoCraft's history, untracked since, and every
+# fresh clone pays for it — and here it would be one per platform, in the
+# repository an author is told to copy from.
 set -e
 
 cd "$(dirname "$0")"
@@ -33,13 +29,39 @@ output=${1:-gocraft-example-go.gcpkg}
 
 cli=$GOCRAFT_CLI
 if [ -z "$cli" ]; then
-	for candidate in ../../run/gocraft-cli.exe ../../run/gocraft-cli; do
-		if [ -x "$candidate" ]; then cli=$candidate; break; fi
-	done
-fi
-if [ -z "$cli" ]; then
-	echo "no packer: set GOCRAFT_CLI, or run 'make cli' from the workspace" >&2
-	exit 1
+	# The release download. Refused unless its sha256 matches the checksums.txt
+	# published beside it: a build that runs an unverified binary it just pulled
+	# off the network is a supply chain with a hole in it.
+	cli_version=v0.2.0
+	case "$(uname -s)" in
+		Linux) os=linux ;;
+		Darwin) os=darwin ;;
+		MINGW* | MSYS* | CYGWIN*) os=windows ;;
+		*) echo "no gocraft-cli build for $(uname -s): set GOCRAFT_CLI" >&2; exit 1 ;;
+	esac
+	case "$(uname -m)" in
+		x86_64 | amd64) arch=amd64 ;;
+		aarch64 | arm64) arch=arm64 ;;
+		*) echo "no gocraft-cli build for $(uname -m): set GOCRAFT_CLI" >&2; exit 1 ;;
+	esac
+	asset="gocraft-cli_${cli_version}_${os}_${arch}"
+	[ "$os" = windows ] && asset="$asset.exe"
+	cli=.gocraft/tool/$asset
+	if [ ! -x "$cli" ]; then
+		base="https://github.com/GoCraft-MC/gocraft-cli/releases/download/$cli_version"
+		mkdir -p .gocraft/tool
+		curl -fsSL -o "$cli.tmp" "$base/$asset"
+		curl -fsSL -o .gocraft/tool/checksums.txt "$base/checksums.txt"
+		want=$(awk -v a="$asset" '$2 == a || $2 == "*"a { print $1 }' .gocraft/tool/checksums.txt)
+		got=$(sha256sum "$cli.tmp" | awk '{ print $1 }')
+		if [ -z "$want" ] || [ "$want" != "$got" ]; then
+			rm -f "$cli.tmp"
+			echo "$asset does not match the release's checksums.txt: refused" >&2
+			exit 1
+		fi
+		mv "$cli.tmp" "$cli"
+		chmod +x "$cli"
+	fi
 fi
 
 # The types this plugin emits, from its own manifest. Generated rather than
@@ -57,6 +79,12 @@ elif [ ! -d internal/shop ]; then
 	echo "SHOP_BUNDLE at its .gcpkg — or run 'make examples' from the workspace" >&2
 	exit 1
 fi
+
+# Outside any workspace, deliberately. This module pins the SDK by tag because
+# building it proves the SDK is usable by someone who only has the coordinates;
+# a go.work up the tree — the development workspace is one — would resolve the
+# checkouts beside it instead and hide exactly that.
+export GOWORK=off
 
 # The commands, asked of the plugin itself: it declares them once in Commands(),
 # and that declaration is what the loader binds, so the shape in the bundle and
