@@ -1,35 +1,16 @@
 plugins {
-    // The version is gocraft-jvm's declaredVersion, resolved from mavenLocal
-    // until the build moves to the published coordinates. See settings.gradle.kts.
-    id("fr.gocraft.plugin") version "0.3.0"
-}
-
-// Declared here rather than in settings, because the build plugin adds jitpack
-// at project level — and a project that declares repositories of its own is
-// where Gradle looks, settings or not. Putting mavenLocal in settings would
-// have been silently ignored, which is how the first attempt failed.
-repositories {
-    mavenLocal()
+    // The gocraft-jvm release tag, served verbatim by JitPack. See
+    // settings.gradle.kts for how the id resolves to it.
+    id("fr.gocraft.plugin") version "v0.3.0"
 }
 
 gocraft {
     bundleName = "gocraft-example-java"
 
-    // The packer, pinned to a local build on purpose.
-    //
-    // gocraft-cli reads the manifest with the same strict decoder the server
-    // does, and a released one is built against a gocraft-abi that predates
-    // [[events.provides]]. Unknown keys are refused, so a downloaded packer
-    // would reject a manifest the server accepts — the one failure mode where
-    // the error message names nothing useful.
-    //
-    // -PgocraftCli=<path> overrides it; otherwise this expects the workspace
-    // layout, where `make cli` puts the packer in run/. When gocraft-cli and
-    // gocraft-abi are tagged together, delete this block and let the build
-    // plugin download and verify the release as it does for an author.
-    toolPath = (project.findProperty("gocraftCli") as String?)
-        ?: rootProject.file(
-            if (System.getProperty("os.name").startsWith("Windows")) "../../run/gocraft-cli.exe"
-            else "../../run/gocraft-cli"
-        ).absolutePath
+    // The packer release the build downloads and verifies against the
+    // release's checksums.txt. Named here because the plugin's own default
+    // still says v0.1.1, whose decoder predates [[events.provides]] and would
+    // refuse this manifest — the one failure mode where the error message
+    // names nothing useful.
+    toolVersion = "v0.2.0"
 }

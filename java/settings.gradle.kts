@@ -1,28 +1,18 @@
-// mavenLocal, and only until the API is tagged.
+// JitPack, the way an author resolves it.
 //
-// This plugin uses the plugin-defined event API, which is written and not
-// released, so `./gradlew publishToMavenLocal` in the gocraft-jvm checkout is a
-// prerequisite here.
-//
-// The coordinates differ from an author's twice over, and both differences are
-// the same fact: JitPack publishes under a group derived from the repository
-// path and serves a tag verbatim, while a local publish writes the group the
-// project declares and the version as declared. So this asks for
-// fr.gocraft:gocraft-gradle-plugin:0.3.0 where an author writes
-// com.github.GoCraft-MC.gocraft-jvm:…:v0.3.0. gradle.properties tells the
-// plugin to resolve the API the same way.
-//
-// When it is tagged, this whole block becomes the four lines the README hands
-// an author: jitpack.io, and a version with a leading v.
+// JitPack publishes under a group derived from the repository path and serves
+// a tag verbatim, so the module is com.github.GoCraft-MC.gocraft-jvm:* and the
+// version keeps its leading v. The resolution strategy is the one piece Gradle
+// needs beyond the repository: JitPack serves no plugin marker artefact, so
+// the plugin id is mapped onto the module that carries it.
 pluginManagement {
     repositories {
-        mavenLocal()
         maven { url = uri("https://jitpack.io") }
         gradlePluginPortal()
     }
     resolutionStrategy.eachPlugin {
         if (requested.id.id == "fr.gocraft.plugin") {
-            useModule("fr.gocraft:gocraft-gradle-plugin:${requested.version}")
+            useModule("com.github.GoCraft-MC.gocraft-jvm:gocraft-gradle-plugin:${requested.version}")
         }
     }
 }
