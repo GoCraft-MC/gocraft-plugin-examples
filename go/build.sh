@@ -95,6 +95,11 @@ go run . -gocraft-dump-commands .gocraft/commands.json
 # host extracts under "plugin" plus its own.
 go build -o bin/gocraft-example-go .
 
+# The stale output first: the packer lists the directory before creating the
+# archive, so a bundle left by the previous run would be packed into the new
+# one — reading the very file being written, which never reaches EOF.
+rm -f "$output"
+
 # -layout-lock is the point of this script. Appending a field to an event is
 # allowed; reordering or removing one is refused here, before the bundle exists,
 # because the index is what the wire carries and a subscriber compiled against
