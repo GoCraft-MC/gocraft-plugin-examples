@@ -1,7 +1,7 @@
 plugins {
     // The version is gocraft-jvm's declaredVersion, resolved from mavenLocal
-    // while the event API is untagged. See settings.gradle.kts.
-    id("fr.gocraft.plugin") version "0.2.2"
+    // until the build moves to the published coordinates. See settings.gradle.kts.
+    id("fr.gocraft.plugin") version "0.3.0"
 }
 
 // Declared here rather than in settings, because the build plugin adds jitpack

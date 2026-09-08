@@ -8,8 +8,8 @@
 // the same fact: JitPack publishes under a group derived from the repository
 // path and serves a tag verbatim, while a local publish writes the group the
 // project declares and the version as declared. So this asks for
-// fr.gocraft:gocraft-gradle-plugin:0.2.2 where an author writes
-// com.github.GoCraft-MC.gocraft-jvm:…:v0.2.2. gradle.properties tells the
+// fr.gocraft:gocraft-gradle-plugin:0.3.0 where an author writes
+// com.github.GoCraft-MC.gocraft-jvm:…:v0.3.0. gradle.properties tells the
 // plugin to resolve the API the same way.
 //
 // When it is tagged, this whole block becomes the four lines the README hands
