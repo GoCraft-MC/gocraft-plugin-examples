@@ -12,5 +12,5 @@ gocraft {
     // still says v0.1.1, whose decoder predates [[events.provides]] and would
     // refuse this manifest — the one failure mode where the error message
     // names nothing useful.
-    toolVersion = "v0.2.0"
+    toolVersion = "v0.2.1"
 }

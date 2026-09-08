@@ -32,7 +32,7 @@ if [ -z "$cli" ]; then
 	# The release download. Refused unless its sha256 matches the checksums.txt
 	# published beside it: a build that runs an unverified binary it just pulled
 	# off the network is a supply chain with a hole in it.
-	cli_version=v0.2.0
+	cli_version=v0.2.1
 	case "$(uname -s)" in
 		Linux) os=linux ;;
 		Darwin) os=darwin ;;
