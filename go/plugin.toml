@@ -14,6 +14,9 @@ entry = "bin/gocraft-example-go"
 [[subscribe]]
 event = "player.join"
 
+[[subscribe]]
+event = "player.chat"
+
 # Resolved by the host before every dispatch and shipped inside the event, so
 # event.Can(...) is a map lookup rather than a round trip taken while the tick
 # waits. A node not declared here reads false — a manifest bug, not a denial.
