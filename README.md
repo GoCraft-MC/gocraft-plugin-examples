@@ -1,48 +1,63 @@
 # gocraft-plugin-examples
 
-The reference plugins for [GoCraft](https://github.com/GoCraft-MC/GoCraft), one
-per runtime. They are the only examples that exist: nothing in the server
-repository and nothing in the SDKs duplicates what is here.
-
-One plugin per runtime rather than a folder of small samples, and each one
-exercises every part of the API its runtime can reach. A folder of samples
-answers "how do I do X" and leaves "does all of it still work together"
-unanswered — which is the question a reference plugin is for. When something in
-the API stops working, one of these stops building or stops behaving, and the
-test server loads them on every run.
+Reference plugins for [GoCraft](https://github.com/GoCraft-MC/GoCraft), showing
+commands, typed native events, and plugin-defined events across Go and Java.
 
 | Directory | Runtime | Plugin id |
 | --- | --- | --- |
 | `java/` | `jvm` | `gocraft.example.java` |
 | `go/` | `go` | `gocraft.example.go` |
-| `lua/` | `lua` | not written — `runtime/lua` does not exist yet |
 
-They are also a pair. The Java plugin publishes a plugin-defined event and the
-Go plugin subscribes to it, and the other way round — which is the only thing
-that proves an event crosses two languages and a process boundary with its
-mutations intact. Neither half is worth much alone.
+The examples work as a pair: Java publishes a purchase event that Go can modify
+or cancel, and Go publishes a greeting that Java can modify before it is sent.
+Build and install both to try these cross-runtime interactions.
 
 ## Building
 
 Each plugin builds into a `.gcpkg` bundle, which is what a server loads.
 
-```sh
-cd java && ./gradlew gocraftBundle     # -> java/build/gocraft/gocraft-example-java.gcpkg
-cd go   && ./build.sh                  # -> go/gocraft-example-go.gcpkg
-```
+Prerequisites for this branch:
 
-For a fresh checkout, generate the Java subscriber from the Go provider first
-(from this repository's root, using the custom-events-capable packer):
+- Go 1.26.0 and JDK 25. Use the checked-in Gradle wrapper.
+- `gocraft-cli` v0.2.1 on `PATH` for the initial subscriber generation. Release
+  binaries and `checksums.txt` are available in the
+  [CLI release](https://github.com/GoCraft-MC/gocraft-cli/releases/tag/v0.2.1).
+  Verify the downloaded binary against its checksum before running it.
+- The matching [`gocraft-jvm` feature branch](https://github.com/GoCraft-MC/gocraft-jvm/tree/feat/go-events-api)
+  published locally: run `./gradlew publishToMavenLocal` in that checkout first.
+  The released v0.3.0 API does not contain `PlayerChatEvent`; see [Versions](#versions).
+
+Run these commands in order from this repository's root, in a POSIX shell
+(Git Bash on Windows). The subshells keep each path relative to the root:
 
 ```sh
+# Bootstrap the Java subscriber from the Go plugin's hand-written manifest.
 gocraft-cli gen -lang java -package gocraft.example.greeting \
   -o java/src/main/java/gocraft/example/greeting go
+
+# Java's annotated provider becomes a manifest inside this bundle.
+(cd java && ./gradlew gocraftBundle)
+
+# Generate the Go subscriber from that bundle, then build and package Go.
+(cd go && SHOP_BUNDLE=../java/build/gocraft/gocraft-example-java.gcpkg ./build.sh)
 ```
 
-Both builds can download and verify the released packer. For a local override,
-pass `-PgocraftCli=/absolute/path/to/gocraft-cli` to Java or set `GOCRAFT_CLI`
-for Go. Set `SHOP_BUNDLE` to the Java bundle when first building Go. No
-untracked workspace Makefile is required; see the native API prerequisite below.
+On Windows, use `./gradlew.bat` in place of `./gradlew`, including when publishing
+the JVM artifacts. Keep the shell commands above in Git Bash, not PowerShell.
+
+The outputs are `java/build/gocraft/gocraft-example-java.gcpkg` and
+`go/gocraft-example-go.gcpkg`. Copy both into the server's `plugins/` directory
+and restart a GoCraft build containing the matching native event API.
+
+The build steps can download and verify their own CLI v0.2.1; the bootstrap
+command still needs the CLI installed above. To reuse a local binary, pass
+`-PgocraftCli=/absolute/path/to/gocraft-cli` to Gradle and set `GOCRAFT_CLI` to
+its absolute path for `build.sh`. No workspace Makefile is required.
+
+Both builds pass the committed `events.lock.json` to the packer. It checks
+custom-event field layouts: appending a field is allowed, but reordering or
+removing one is refused. Keep `SHOP_BUNDLE` set when rebuilding Go after changes
+to the Java provider so its subscriber types are regenerated.
 
 ## Native cancellation and mutation
 
@@ -56,24 +71,6 @@ Go assigns `event.Message` and uses `control.Cancel()`. Java uses
 `event.setMessage(...)` and `control.cancel()`. Each uses the same verdict
 round trip. Other fields are immutable snapshots, not additional write APIs.
 The custom purchase/greeting examples and their layout locks remain unchanged.
-
-Each half carries its own build, and both do the same two things beyond
-compiling: they generate the types the other plugin declares, from that plugin's
-own manifest, and they hand the packer `events.lock.json` — which refuses a
-reordered or removed event field before a bundle exists. Appending one is fine.
-That record is committed, and it is what protects a subscriber compiled last
-month against a layout that moved under it.
-
-The Java bundle comes first. Its manifest is derived from its annotated classes
-and exists only once built, so `build.sh` needs `SHOP_BUNDLE` pointing at it the
-first time — the Go manifest is written by hand and needs nothing in return,
-which is what unties the knot. Neither build needs a packer installed: the
-Gradle build downloads the `gocraft-cli` release and verifies it against the
-release's `checksums.txt` before running it, and `build.sh` does the same when
-`GOCRAFT_CLI` does not name one.
-
-From the workspace, `make examples` orders the two and drops the bundles in the
-test server's `plugins/`.
 
 ## Versions
 
