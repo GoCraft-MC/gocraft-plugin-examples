@@ -10,9 +10,9 @@ module github.com/GoCraft-MC/gocraft-plugin-examples/go
 
 go 1.26.0
 
-require github.com/GoCraft-MC/gocraft-api-go v0.2.1-0.20260908121317-56ca886c28e2
+require github.com/GoCraft-MC/gocraft-api-go v0.3.1-0.20260909092105-c01a15fc60a3
 
 require (
-	github.com/GoCraft-MC/gocraft-abi v0.3.1-0.20260908120207-f5440be234ac // indirect
+	github.com/GoCraft-MC/gocraft-abi v0.4.1-0.20260909091520-46f15c995cb4 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 )

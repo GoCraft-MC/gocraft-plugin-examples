@@ -39,10 +39,10 @@ gocraft-cli gen -lang java -package gocraft.example.greeting \
   -o java/src/main/java/gocraft/example/greeting go
 ```
 
-Pass `-PgocraftCli=/absolute/path/to/gocraft-cli` to the Java Gradle command.
-Then set `GOCRAFT_CLI` and `SHOP_BUNDLE` when running the Go build script. No
-untracked workspace Makefile is required. Go dependencies are now pinned to
-published feature commits, so the Go example builds without `go.work`.
+Both builds can download and verify the released packer. For a local override,
+pass `-PgocraftCli=/absolute/path/to/gocraft-cli` to Java or set `GOCRAFT_CLI`
+for Go. Set `SHOP_BUNDLE` to the Java bundle when first building Go. No
+untracked workspace Makefile is required; see the native API prerequisite below.
 
 ## Native cancellation and mutation
 
@@ -67,25 +67,29 @@ month against a layout that moved under it.
 The Java bundle comes first. Its manifest is derived from its annotated classes
 and exists only once built, so `build.sh` needs `SHOP_BUNDLE` pointing at it the
 first time — the Go manifest is written by hand and needs nothing in return,
-which is what unties the knot. Both builds want a locally built `gocraft-cli`
-for the reason the next section gives.
+which is what unties the knot. Neither build needs a packer installed: the
+Gradle build downloads the `gocraft-cli` release and verifies it against the
+release's `checksums.txt` before running it, and `build.sh` does the same when
+`GOCRAFT_CLI` does not name one.
 
 From the workspace, `make examples` orders the two and drops the bundles in the
 test server's `plugins/`.
 
-## Versions, and why they are not tags yet
+## Versions
 
-A released plugin depends on published artefacts: `gocraft-api-go` by module
-tag, `gocraft-api-jvm` from JitPack. That is the property worth having — it
-proves the SDKs are usable by someone who only has the coordinates, not a
-checkout beside them.
+The Go module pins published feature commits containing the native event API,
+on top of the released ABI v0.4.0 and SDK v0.3.0 baselines. `build.sh` keeps
+`GOWORK=off`: a development workspace must not hide incorrect dependency pins.
 
-These two do not, yet. They use parts of the API that are written but untagged,
-so the Java build resolves `gocraft-jvm` from `mavenLocal()` and the Go build
-pins published `gocraft-api-go` feature commits. Both are marked at
-the place they are configured. When the API is tagged, both flip back to
-coordinates and this section goes away — until then, `./gradlew
-publishToMavenLocal` in `gocraft-jvm` is a prerequisite for the Java build.
+The Java native events are not in the v0.3.0 release. Before building this
+branch's Java example, run `./gradlew publishToMavenLocal` on the matching
+`gocraft-jvm/feat/go-events-api` branch. Its declared version is 0.3.0 and
+`gocraft.artefactGroup=fr.gocraft` selects those local feature artifacts.
+Do not substitute the released tag, which lacks PlayerChatEvent.
+
+Once the native API is released, remove the local artifact-group override and
+use its new leading-`v` JitPack version. The settings retain that release
+resolution path. Both build scripts retain the verified CLI download behavior.
 
 ## Licence
 
