@@ -1,49 +1,40 @@
 # The Go reference plugin
 
-Logs joins and block breaks, and provides `/greet`. Its callbacks run in a
-separate process, and the same event API answers whether the player arrived on
-Java or on Bedrock.
+Logs joins and block-break attempts, provides `/greet`, and demonstrates typed
+chat cancellation and mutation. It also publishes a custom greeting for Java
+to modify and subscribes to Java's purchase event to discount or cancel it.
+Callbacks run in a separate process; the player snapshot identifies the edition.
 
 ## Building
 
-```sh
-go run . -gocraft-dump-commands .gocraft/commands.json
-go build -o bin/gocraft-example-go .
-```
-
-The first line asks the plugin what commands it has. It declares them once, in
-`Commands()`, and that same declaration is what the loader binds handlers from —
-so the shape in the bundle and the functions that answer cannot disagree. The
-dump lands in a dot directory because the packer skips those.
-
-Then package it:
+Follow the [repository build prerequisites and Java-first sequence](../README.md#building)
+first. Then, from this `go/` directory in a POSIX shell (Git Bash on Windows):
 
 ```sh
-gocraft-cli build -commands .gocraft/commands.json -o gocraft-example-go.gcpkg .
+SHOP_BUNDLE=../java/build/gocraft/gocraft-example-java.gcpkg ./build.sh
 ```
 
-It reads the directory, it does not compile it. `gocraft-cli` turns that neutral
-file into the `commands.pb` the bundle ships — the same program that does it for
-a Java plugin, from the same kind of file its annotation processor writes.
-Executor ids are minted there and nowhere else, which is why handlers bind to
-paths rather than to numbers.
+The script generates provider and subscriber types, dumps command metadata from
+`Commands()`, compiles the executable, and packages `gocraft-example-go.gcpkg`.
+It passes `events.lock.json` to the packer to reject incompatible field-layout
+changes and removes the previous output bundle before packing to avoid including
+it in itself. Use the script instead of bypassing these steps with a bare build.
 
-While the plugin-defined event API is untagged, use the packer the workspace
-builds rather than a released one: a release is built against a `gocraft-abi`
-that predates `[[events.provides]]`, and its strict decoder refuses a manifest
-the server accepts. `make cli` puts one in the test server's directory.
+Without `GOCRAFT_CLI`, the script downloads CLI v0.2.1 and verifies its release
+checksum. To use an existing binary, set `GOCRAFT_CLI` to its absolute path.
+No workspace Makefile or unpublished packer is required. `GOWORK=off` is set by
+the script so builds use the feature dependency versions pinned in `go.mod`.
 
 Copy the `.gcpkg` into the server's `plugins/` directory and restart it. GoCraft
 creates `plugins/gocraft.example.go/` for configuration and plugin data.
+Install the Java bundle too for the custom-event interactions.
+
+See [native cancellation and mutation](../README.md#native-cancellation-and-mutation)
+for chat inputs and expected results. `/greet` requires `gocraft.example.greet`.
 
 ## Platforms
 
-The executable is platform-specific, so build the bundle for the operating
-system and architecture the server runs. Cross-compilation works:
-
-```sh
-GOOS=linux GOARCH=amd64 go build -o bin/gocraft-example-go .
-```
-
-There is no hot reload and no unloading independently of the process. Rebuild
-whenever GoCraft's Go version or the plugin API version changes.
+The executable is platform-specific. Run `build.sh` on the operating system and
+architecture used by the server. Do not cross-target the whole script with
+`GOOS`/`GOARCH`: its command-metadata step must execute `go run` on the build host.
+Rebuild when changing the target platform or updating the plugin API dependency.

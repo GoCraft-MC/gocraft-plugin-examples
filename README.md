@@ -36,14 +36,15 @@ gocraft-cli gen -lang java -package gocraft.example.greeting \
   -o java/src/main/java/gocraft/example/greeting go
 
 # Java's annotated provider becomes a manifest inside this bundle.
-(cd java && ./gradlew gocraftBundle)
+(cd java && sh ./gradlew gocraftBundle)
 
 # Generate the Go subscriber from that bundle, then build and package Go.
 (cd go && SHOP_BUNDLE=../java/build/gocraft/gocraft-example-java.gcpkg ./build.sh)
 ```
 
-On Windows, use `./gradlew.bat` in place of `./gradlew`, including when publishing
-the JVM artifacts. Keep the shell commands above in Git Bash, not PowerShell.
+Use `sh` for the example's wrapper because it is not committed as executable.
+On Windows, use `./gradlew.bat` instead of `sh ./gradlew` (or `./gradlew` when
+publishing JVM artifacts). Keep these shell commands in Git Bash, not PowerShell.
 
 The outputs are `java/build/gocraft/gocraft-example-java.gcpkg` and
 `go/gocraft-example-go.gcpkg`. Copy both into the server's `plugins/` directory
@@ -61,7 +62,8 @@ to the Java provider so its subscriber types are regenerated.
 
 ## Native cancellation and mutation
 
-Both examples subscribe to `player.chat` in addition to the original events:
+After both plugins are enabled, connect to a test server and send these as chat
+messages, without a leading slash. With no other chat-modifying plugins:
 
 - `hello-go` becomes `Hello from the typed Go event API.` before broadcast.
 - `hello-java` becomes `Hello from the typed Java event API.` before broadcast.
@@ -71,6 +73,25 @@ Go assigns `event.Message` and uses `control.Cancel()`. Java uses
 `event.setMessage(...)` and `control.cancel()`. Each uses the same verdict
 round trip. Other fields are immutable snapshots, not additional write APIs.
 The custom purchase/greeting examples and their layout locks remain unchanged.
+
+See the registrations and handlers in [Go](go/main.go) and
+[Java](java/src/main/java/gocraft/example/ExampleListener.java). Go registers a
+typed callback with `context.Events().OnPlayerChat(...)`; Java uses `@Subscribe`
+on a method receiving `PlayerChatEvent` and `EventControl`.
+
+## Cross-runtime smoke checks
+
+With both examples enabled and no other custom-event subscribers, try these
+manual checks from a player account:
+
+| Action | Expected result |
+| --- | --- |
+| Join the server | The Go greeting ends with `Java says hello too.` after Java modifies it. |
+| `/shop buy 100` | Java reports a sale for 90.00; the gold tier is 37.50 after Go modifies both prices. |
+| `/shop buy 100001` | Java replies `The sale was refused.` after Go cancels the purchase. |
+
+These are expected in-game results, not checks performed by building the bundles.
+The shop command demonstrates event round trips; it does not implement an economy.
 
 ## Versions
 
