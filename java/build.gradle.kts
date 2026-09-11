@@ -1,16 +1,18 @@
 plugins {
-    // The gocraft-jvm release tag, served verbatim by JitPack. See
-    // settings.gradle.kts for how the id resolves to it.
-    id("fr.gocraft.plugin") version "v0.3.0"
+    // Matching native-event feature artifacts, published to Maven local first.
+    // The released v0.3.0 API does not yet contain these native events.
+    id("fr.gocraft.plugin") version "0.3.0"
+}
+
+repositories {
+    mavenLocal()
 }
 
 gocraft {
     bundleName = "gocraft-example-java"
 
     // The packer release the build downloads and verifies against the
-    // release's checksums.txt. Named here because the plugin's own default
-    // still says v0.1.1, whose decoder predates [[events.provides]] and would
-    // refuse this manifest — the one failure mode where the error message
-    // names nothing useful.
+    // release's checksums.txt, preserving main's published-tool workflow.
     toolVersion = "v0.2.1"
+    (project.findProperty("gocraftCli") as String?)?.let { toolPath = it }
 }

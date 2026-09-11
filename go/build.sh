@@ -80,7 +80,7 @@ elif [ ! -d internal/shop ]; then
 	exit 1
 fi
 
-# Outside any workspace, deliberately. This module pins the SDK by tag because
+# Outside any workspace, deliberately. This module pins a published SDK commit:
 # building it proves the SDK is usable by someone who only has the coordinates;
 # a go.work up the tree — the development workspace is one — would resolve the
 # checkouts beside it instead and hide exactly that.
